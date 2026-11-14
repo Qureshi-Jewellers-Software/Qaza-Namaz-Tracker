@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ur">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0E5A4A">
+  <title>Qaza Namaz Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+      </div>
+      <h1>Qaza Namaz Tracker</h1>
+      <p class="muted">Apni qaza namazon ka hisaab, aasaan tareeqe se</p>
+    </header>
+
+    <div id="config-warning" class="notice warn" hidden>
+      Setup baqi hai: <code>web/config.js</code> mein Supabase URL aur anon key daalni hain.
+    </div>
+
+    <div id="message" class="notice" role="status" aria-live="polite" hidden></div>
+
+    <!-- Loading -->
+    <section id="view-loading" class="card center">
+      <p class="muted">Load ho raha hai…</p>
+    </section>
+
+    <!-- Login -->
+    <section id="view-login" class="card" hidden>
+      <h2>Login</h2>
+      <form id="form-login" novalidate>
+        <label>Email
+          <input name="email" type="email" autocomplete="email" required placeholder="aap@example.com">
+        </label>
+        <label>Password
+          <input name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="••••••••">
+        </label>
+        <button type="button" class="link right" data-go="forgot">Password bhool gaye?</button>
+        <button type="submit" class="btn">Login</button>
+      </form>
+      <p class="switch">Naya account? <button type="button" class="link" data-go="register">Register karein</button></p>
+    </section>
+
+    <!-- Register -->
+    <section id="view-register" class="card" hidden>
+      <h2>Naya account</h2>
+      <form id="form-register" novalidate>
+        <label>Email
+          <input name="email" type="email" autocomplete="email" required placeholder="aap@example.com">
+        </label>
+        <label>Password <span class="hint">(kam az kam 8 huroof)</span>
+          <input name="password" type="password" autocomplete="new-password" required minlength="8">
+        </label>
+        <label>Password dobara
+          <input name="password2" type="password" autocomplete="new-password" required minlength="8">
+        </label>
+        <button type="submit" class="btn">Account banayein</button>
+      </form>
+      <p class="switch">Pehle se account hai? <button type="button" class="link" data-go="login">Login karein</button></p>
+    </section>
+
+    <!-- Forgot password -->
+    <section id="view-forgot" class="card" hidden>
+      <h2>Password bhool gaye</h2>
+      <p class="muted">Apna email likhein. Hum password badalne ka link bhejenge.</p>
+      <form id="form-forgot" novalidate>
+        <label>Email
+          <input name="email" type="email" autocomplete="email" required placeholder="aap@example.com">
+        </label>
+        <button type="submit" class="btn">Link bhejein</button>
+      </form>
+      <p class="switch"><button type="button" class="link" data-go="login">Wapas login par</button></p>
+    </section>
+
+    <!-- Reset password (email link se aane par) -->
+    <section id="view-reset" class="card" hidden>
+      <h2>Naya password</h2>
+      <form id="form-reset" novalidate>
+        <label>Naya password <span class="hint">(kam az kam 8 huroof)</span>
+          <input name="password" type="password" autocomplete="new-password" required minlength="8">
+        </label>
+        <label>Naya password dobara
+          <input name="password2" type="password" autocomplete="new-password" required minlength="8">
+        </label>
+        <button type="submit" class="btn">Password save karein</button>
+      </form>
+    </section>
+
+    <!-- Home (login ke baad) -->
+    <section id="view-home" class="card" hidden>
+      <h2>Assalam-o-Alaikum</h2>
+      <p>Aap <b id="home-email"></b> se login hain.</p>
+      <p id="db-status" class="muted">Database check ho raha hai…</p>
+      <p class="muted">Agla qadam: setup screen (DOB, gender, qaza ka hisaab) jald aa rahi hai.</p>
+      <button type="button" id="btn-logout" class="btn secondary">Logout</button>
+    </section>
+
+    <footer class="muted small">Aapka data sirf aap dekh sakte hain. Yeh app hisaab rakhne ka zariya hai, fatwa nahi.</footer>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
