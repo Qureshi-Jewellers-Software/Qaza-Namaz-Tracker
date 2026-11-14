@@ -1,0 +1,38 @@
+# Har push par GitHub khud APK banata hai.
+# APK download: Actions tab > sab se upar wala run > neeche "Artifacts" > qaza-namaz-tracker-apk
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Code lein
+        uses: actions/checkout@v4
+
+      - name: Java 17 lagayein
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Gradle lagayein
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: APK banayein
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      - name: APK upload karein
+        uses: actions/upload-artifact@v4
+        with:
+          name: qaza-namaz-tracker-apk
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 30
