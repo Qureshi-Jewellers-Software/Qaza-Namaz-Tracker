@@ -10,7 +10,7 @@
 </head>
 <body>
   <main class="shell">
-    <header class="brand">
+    <header class="brand" id="brand">
       <div class="logo" aria-hidden="true">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
       </div>
@@ -19,17 +19,17 @@
     </header>
 
     <div id="config-warning" class="notice warn" hidden>
-      Setup baqi hai: <code>web/config.js</code> mein Supabase URL aur anon key daalni hain.
+      Setup baqi hai: <code>web/config.js</code> mein Supabase URL aur key daalni hain.
     </div>
 
     <div id="message" class="notice" role="status" aria-live="polite" hidden></div>
 
-    <!-- Loading -->
+    <!-- ============ LOADING ============ -->
     <section id="view-loading" class="card center">
       <p class="muted">Load ho raha hai…</p>
     </section>
 
-    <!-- Login -->
+    <!-- ============ LOGIN ============ -->
     <section id="view-login" class="card" hidden>
       <h2>Login</h2>
       <form id="form-login" novalidate>
@@ -45,7 +45,7 @@
       <p class="switch">Naya account? <button type="button" class="link" data-go="register">Register karein</button></p>
     </section>
 
-    <!-- Register -->
+    <!-- ============ REGISTER ============ -->
     <section id="view-register" class="card" hidden>
       <h2>Naya account</h2>
       <form id="form-register" novalidate>
@@ -63,7 +63,7 @@
       <p class="switch">Pehle se account hai? <button type="button" class="link" data-go="login">Login karein</button></p>
     </section>
 
-    <!-- Forgot password -->
+    <!-- ============ FORGOT ============ -->
     <section id="view-forgot" class="card" hidden>
       <h2>Password bhool gaye</h2>
       <p class="muted">Apna email likhein. Hum password badalne ka link bhejenge.</p>
@@ -76,7 +76,7 @@
       <p class="switch"><button type="button" class="link" data-go="login">Wapas login par</button></p>
     </section>
 
-    <!-- Reset password (email link se aane par) -->
+    <!-- ============ RESET ============ -->
     <section id="view-reset" class="card" hidden>
       <h2>Naya password</h2>
       <form id="form-reset" novalidate>
@@ -90,17 +90,130 @@
       </form>
     </section>
 
-    <!-- Home (login ke baad) -->
-    <section id="view-home" class="card" hidden>
-      <h2>Assalam-o-Alaikum</h2>
-      <p>Aap <b id="home-email"></b> se login hain.</p>
-      <p id="db-status" class="muted">Database check ho raha hai…</p>
-      <p class="muted">Agla qadam: setup screen (DOB, gender, qaza ka hisaab) jald aa rahi hai.</p>
-      <button type="button" id="btn-logout" class="btn secondary">Logout</button>
+    <!-- ============ SETUP ============ -->
+    <section id="view-setup" class="card" hidden>
+      <span class="step">Qadam 1 / 2</span>
+      <h2>Apni maloomat</h2>
+      <p class="muted small-left">In se app aapki qaza ka andaza lagayegi. DOB, gender aur haiz ki maloomat sirf aapke is device par rehti hai.</p>
+      <form id="form-setup" novalidate>
+        <label>Date of Birth
+          <input name="dob" type="date" required>
+        </label>
+        <fieldset class="seg">
+          <legend>Gender</legend>
+          <label class="seg-opt"><input type="radio" name="gender" value="male" checked><span>Mard (Male)</span></label>
+          <label class="seg-opt"><input type="radio" name="gender" value="female"><span>Aurat (Female)</span></label>
+        </fieldset>
+        <label>Kis umar se ginti shuru ho? <span class="hint">(default 10 saal)</span>
+          <input name="startAge" type="number" inputmode="numeric" min="1" max="30" value="10" required>
+        </label>
+        <div id="haiz-box" class="subcard" hidden>
+          <label>Haiz: mahine mein andazan kitne din?
+            <input name="haizDays" type="number" inputmode="numeric" min="0" max="15" value="7">
+          </label>
+          <p class="muted small-left">In dinon ki namazein qaza se minus hongi. Ramzan ke in dinon ke rozay qaza rozon mein shamil rahenge.</p>
+        </div>
+        <button type="submit" class="btn">Hisaab lagayein</button>
+      </form>
+      <p class="switch"><button type="button" class="link" id="btn-manual">DOB ke baghair, khud number likhna hai</button></p>
+    </section>
+
+    <!-- ============ REVIEW ============ -->
+    <section id="view-review" class="card" hidden>
+      <span class="step">Qadam 2 / 2</span>
+      <h2>Apna hisaab check karein</h2>
+      <div id="review-info" class="notice"></div>
+      <div class="rev-head"><span>Item</span><span>Total</span><span>Ada −</span><span>Qaza</span></div>
+      <div id="review-rows" class="rev-rows"></div>
+      <p class="muted small-left">"Ada" mein woh namazein/rozay likhein jo aap pehle hi parh/rakh chuke hain. Har number baad mein Settings se badla ja sakta hai. Yeh sirf andaza hai, fatwa nahi.</p>
+      <button type="button" class="btn" id="btn-save-initial">Theek hai, save karein</button>
+      <button type="button" class="btn secondary" data-go-app="setup">Wapas</button>
+    </section>
+
+    <!-- ============ DASHBOARD ============ -->
+    <section id="view-dashboard" hidden>
+      <div class="hero">
+        <span class="hero-label">Baqi qaza namazein</span>
+        <span class="hero-num" id="d-remaining">0</span>
+        <div class="bar light"><div id="d-bar"></div></div>
+        <div class="hero-row"><span>Ada ho chuki: <b id="d-done">0</b></span><span><b id="d-pct">0%</b> mukammal</span></div>
+      </div>
+      <div class="grid2">
+        <div class="stat"><span class="muted">Aaj ada ki</span><b id="d-today">0</b></div>
+        <div class="stat"><span class="muted">Qaza rozay baqi</span><b id="d-roza">0</b></div>
+      </div>
+      <h3>Har namaz</h3>
+      <div id="d-list" class="list"></div>
+      <h3>Haal hi mein</h3>
+      <div id="d-recent" class="list"></div>
+    </section>
+
+    <!-- ============ ADD ============ -->
+    <section id="view-add" class="card" hidden>
+      <h2>Qaza ada ki? Darj karein</h2>
+      <p class="label">Kya ada kiya?</p>
+      <div id="add-items" class="chips"></div>
+      <div class="counter">
+        <p class="muted" id="add-q">Kitni ada ki?</p>
+        <div class="counter-row">
+          <button type="button" class="round" id="add-dec" aria-label="Kam karein">−</button>
+          <input id="add-count" type="number" inputmode="numeric" min="1" value="1" aria-label="Tadaad">
+          <button type="button" class="round primary" id="add-inc" aria-label="Zyada karein">+</button>
+        </div>
+        <div class="grid2">
+          <div class="stat soft"><span class="muted">Abhi baqi</span><b id="add-before">0</b></div>
+          <div class="stat tint"><span class="muted">Save ke baad</span><b id="add-after">0</b></div>
+        </div>
+      </div>
+      <button type="button" class="btn" id="btn-add">Save karein</button>
+      <p class="muted small">Ghalti ho jaye to History se Undo kar sakte hain.</p>
+    </section>
+
+    <!-- ============ HISTORY ============ -->
+    <section id="view-history" hidden>
+      <h2 class="page-title">History</h2>
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab active" data-range="day">Din</button>
+        <button type="button" class="tab" data-range="week">Hafta</button>
+        <button type="button" class="tab" data-range="month">Mahina</button>
+        <button type="button" class="tab" data-range="all">Sab</button>
+      </div>
+      <div id="h-summary" class="notice"></div>
+      <div id="h-list" class="list"></div>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section id="view-settings" hidden>
+      <h2 class="page-title">Settings</h2>
+      <div class="card">
+        <p><b>Account:</b> <span id="s-email"></span></p>
+        <p class="muted small-left" id="s-db">Database check ho raha hai…</p>
+      </div>
+      <div class="card">
+        <h3>Hisaab</h3>
+        <p class="muted small-left">Shuru ke numbers ghalat lagein to dobara hisaab lagayein. Purana record mitega nahi; farq "correction" ke taur par history mein likha jayega.</p>
+        <button type="button" class="btn secondary" data-go-app="setup">Shuru ka hisaab badlein</button>
+      </div>
+      <div class="card">
+        <button type="button" class="btn secondary" id="btn-logout">Logout</button>
+        <button type="button" class="btn danger" id="btn-delete">Account delete karein</button>
+        <p class="muted small-left" id="delete-note" hidden>Pakka? Aapka account aur saara record hamesha ke liye mit jayega. Tasdeeq ke liye button dobara dabayein.</p>
+      </div>
     </section>
 
     <footer class="muted small">Aapka data sirf aap dekh sakte hain. Yeh app hisaab rakhne ka zariya hai, fatwa nahi.</footer>
   </main>
+
+  <nav id="nav" class="nav" hidden>
+    <button type="button" data-nav="dashboard" class="active">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+    <button type="button" data-nav="add">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add</button>
+    <button type="button" data-nav="history">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>History</button>
+    <button type="button" data-nav="settings">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Settings</button>
+  </nav>
 
   <script type="module" src="app.js"></script>
 </body>
