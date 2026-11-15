@@ -91,13 +91,15 @@ export function balances(entries, todayKey) {
   const undone = new Set(entries.filter((e) => e.kind === "undo").map((e) => e.related_entry_id));
   const res = {};
   for (const it of ITEMS) res[it.id] = { initial: 0, remaining: 0, done: 0, today: 0 };
+  // "initial" = kul qaza jo zimme aayi: shuru ka hisaab + rozana chhooti (missed) + un par corrections/undo
+  const OWED = new Set(["initial", "missed"]);
   for (const e of entries) {
     const r = res[e.item];
     if (!r) continue;
     r.remaining += e.delta;
     const rel = e.related_entry_id ? byId.get(e.related_entry_id) : null;
-    const touchesInitial = e.kind === "initial" || (rel && rel.kind === "initial");
-    if (touchesInitial) r.initial += e.delta;
+    const owed = OWED.has(e.kind) || (rel && OWED.has(rel.kind));
+    if (owed) r.initial += e.delta;
     else if (todayKey && dateKey(e.recorded_at) === todayKey) r.today += -e.delta;
   }
   for (const it of ITEMS) { const r = res[it.id]; r.done = r.initial - r.remaining; }

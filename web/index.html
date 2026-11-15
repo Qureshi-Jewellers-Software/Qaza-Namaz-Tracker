@@ -133,16 +133,21 @@
     <!-- ============ DASHBOARD ============ -->
     <section id="view-dashboard" hidden>
       <div class="hero">
-        <span class="hero-label">Baqi qaza namazein</span>
+        <span class="hero-label">Baqi Qaza Namazein</span>
         <span class="hero-num" id="d-remaining">0</span>
         <div class="bar light"><div id="d-bar"></div></div>
-        <div class="hero-row"><span>Ada ho chuki: <b id="d-done">0</b></span><span><b id="d-pct">0%</b> mukammal</span></div>
+        <div class="hero-row"><span>Ada ho chuki: <b id="d-done">0</b></span><span><b id="d-pct">0%</b> Mukammal</span></div>
+      </div>
+      <div class="card today-card">
+        <h3>Aaj ki namazein <span class="muted" id="t-date"></span></h3>
+        <p class="muted small-left">Jo namaz aaj waqt par parhi, us par <b>Ada</b> dabayein. Jo reh gayi, us par <b>Qaza</b>. Jin ka haal din khatam hone tak darj na ho, woh khud qaza mein shamil ho jayengi.</p>
+        <div id="t-list" class="list"></div>
       </div>
       <div class="grid2">
         <div class="stat"><span class="muted">Aaj ada ki</span><b id="d-today">0</b></div>
         <div class="stat"><span class="muted">Qaza rozay baqi</span><b id="d-roza">0</b></div>
       </div>
-      <h3>Har namaz</h3>
+      <h3>Har namaz ki qaza <span class="muted small-left">(+ dabayein = 1 qaza ada)</span></h3>
       <div id="d-list" class="list"></div>
       <h3>Haal hi mein</h3>
       <div id="d-recent" class="list"></div>

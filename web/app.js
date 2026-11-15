@@ -75,7 +75,7 @@ if (!configured) {
 
 function start() {
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const state = { session: null, entries: [], bal: null, addItem: "fajr", range: "day", review: null, loadedFor: null };
+  const state = { session: null, entries: [], daily: {}, bal: null, addItem: "fajr", range: "day", review: null, loadedFor: null };
   let recovering = false;
 
   // ================= AUTH =================
@@ -157,6 +157,23 @@ function start() {
     }
     state.entries = all;
     state.bal = balances(all, dateKey(new Date()));
+    // aaj ki namazon ka haal
+    state.daily = {};
+    const { data: d, error: de } = await supabase.from("daily_status").select("prayer,status").eq("day", dateKey(new Date()));
+    if (!de && d) for (const r of d) state.daily[r.prayer] = r.status;
+    state.dailyReady = !de;
+  }
+
+  // App shuru hone ke din se kal tak jin namazon ka haal darj nahi, woh qaza mein
+  async function fillMissedDays() {
+    const inits = state.entries.filter((e) => e.kind === "initial");
+    if (!inits.length) return 0;
+    const start = inits.map((e) => dateKey(e.recorded_at)).sort()[0];
+    const today = dateKey(new Date());
+    if (start >= today) return 0;
+    const { data, error } = await supabase.rpc("fill_missed_days", { p_start: start, p_today: today });
+    if (error) return 0;
+    return data || 0;
   }
 
   async function insertEntries(rows) {
@@ -164,7 +181,7 @@ function start() {
     // Har row mein saare columns, taake koi column khali (NULL) na reh jaye
     const full = rows.map((r) => ({
       id: uuid(), user_id: state.session.user.id, recorded_at: now, device_id: "web",
-      related_entry_id: null, note: null, ...r,
+      related_entry_id: null, note: null, for_day: null, ...r,
     }));
     const { error } = await supabase.from("qaza_entries").insert(full);
     if (error) throw error;
@@ -182,7 +199,11 @@ function start() {
       return say("Data load nahi ho saka: " + friendly(err), "error");
     }
     say("");
-    if (initialEntries().length === 0) openSetup(); else { renderDashboard(); show("dashboard"); }
+    if (initialEntries().length === 0) return openSetup();
+    let added = 0;
+    try { added = await fillMissedDays(); if (added) await loadEntries(); } catch { /* agli dafa */ }
+    renderDashboard(); show("dashboard");
+    if (added) say(`Pichle dinon ki ${fmt(added)} namazein jin ka haal darj nahi tha, qaza mein shamil kar di gayi hain.`);
   }
 
   // ================= SETUP =================
@@ -296,23 +317,81 @@ function start() {
     $("d-today").textContent = fmt(today + b.roza.today);
     $("d-roza").textContent = fmt(b.roza.remaining);
 
+    renderToday();
     const list = $("d-list"); list.replaceChildren();
     for (const it of ITEMS) {
       const r = b[it.id];
       if (it.id === "roza" && r.initial === 0) continue;
       const card = el("div", "item");
+      const top = el("div", "item-top");
+      const grow = el("div", "grow");
       const row = el("div", "item-row");
       row.append(el("b", null, it.name));
-      const right = el("span"); right.append(el("b", null, fmt(r.remaining)), document.createTextNode(" baqi · " + fmt(r.done) + " ada"));
+      const right = el("span");
+      right.append(el("b", null, fmt(r.remaining)), document.createTextNode(" Baqi · "), el("b", null, fmt(r.done)), document.createTextNode(" Ada"));
       row.append(right);
       const bar = el("div", "bar"); const fill = el("div");
       fill.style.width = (r.initial > 0 ? Math.min(100, (r.done / r.initial) * 100) : 0) + "%";
-      bar.append(fill); card.append(row, bar); list.append(card);
+      bar.append(fill); grow.append(row, bar);
+      const plus = el("button", "plus", "+"); plus.type = "button";
+      plus.setAttribute("aria-label", it.name + " ki 1 qaza ada karein");
+      plus.disabled = r.remaining <= 0;
+      plus.addEventListener("click", () => busy(plus, async () => {
+        if (state.bal.items[it.id].remaining <= 0) return;
+        try {
+          await insertEntries([{ item: it.id, kind: "completed", delta: -1 }]);
+          renderDashboard();
+          say(`${it.name} +1 Ada ✓ Baqi: ${fmt(state.bal.items[it.id].remaining)}`);
+        } catch (err) { say(friendly(err), "error"); }
+      }));
+      top.append(grow, plus); card.append(top); list.append(card);
     }
     const recent = $("d-recent"); recent.replaceChildren();
     const rec = state.entries.filter((e) => e.kind !== "initial").slice(0, 5);
     if (!rec.length) recent.append(el("p", "muted small-left", "Abhi koi entry nahi. Neeche \"Add\" dabayein."));
     rec.forEach((e) => recent.append(entryCard(e, false)));
+  }
+
+  // ================= AAJ KI NAMAZEIN =================
+  function renderToday() {
+    $("t-date").textContent = "· " + new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    const list = $("t-list"); list.replaceChildren();
+    if (!state.dailyReady) { list.append(el("p", "muted small-left", "Yeh hissa abhi tayyar nahi (database update baqi hai).")); return; }
+    for (const p of PRAYERS) {
+      const st = state.daily[p.id];
+      const row = el("div", "today-row");
+      const nm = el("div", "nm"); nm.append(document.createTextNode(p.name + " "));
+      nm.append(el("span", "st", st === "prayed" ? "✓ Ada" : st === "missed" ? "✗ Qaza mein" : "Baqi"));
+      const ok = el("button", "pill ok" + (st === "prayed" ? " on" : ""), "Ada"); ok.type = "button";
+      ok.setAttribute("aria-pressed", st === "prayed"); ok.setAttribute("aria-label", p.name + " ada ki");
+      const no = el("button", "pill no" + (st === "missed" ? " on" : ""), "Qaza"); no.type = "button";
+      no.setAttribute("aria-pressed", st === "missed"); no.setAttribute("aria-label", p.name + " ada nahi ki");
+      ok.addEventListener("click", () => busy(ok, () => markToday(p.id, "prayed")));
+      no.addEventListener("click", () => busy(no, () => markToday(p.id, "missed")));
+      row.append(nm, ok, no); list.append(row);
+    }
+  }
+
+  async function markToday(prayer, status) {
+    const current = state.daily[prayer];
+    if (current === status) return;
+    const today = dateKey(new Date());
+    try {
+      const { error } = await supabase.from("daily_status").upsert(
+        { user_id: state.session.user.id, day: today, prayer, status, updated_at: new Date().toISOString() },
+        { onConflict: "user_id,day,prayer" });
+      if (error) throw error;
+      if (status === "missed") {
+        await insertEntries([{ item: prayer, kind: "missed", delta: 1, for_day: today, note: "Aaj ada nahi ki" }]);
+        say(`${nameOf(prayer)} qaza mein shamil ho gayi.`);
+      } else {
+        const m = state.entries.find((e) => e.kind === "missed" && e.item === prayer && e.for_day === today && !state.bal.undone.has(e.id));
+        if (m) await insertEntries([{ item: prayer, kind: "undo", delta: -m.delta, related_entry_id: m.id, note: "Aaj ada ki" }]);
+        else await loadEntries();
+        say(`${nameOf(prayer)} Ada ✓ Masha'Allah`);
+      }
+      renderDashboard();
+    } catch (err) { say(friendly(err), "error"); }
   }
 
   // ================= ADD =================
@@ -362,6 +441,8 @@ function start() {
     const nm = nameOf(e.item);
     if (e.kind === "initial") return { t: `Shuru ka hisaab: ${nm} ${fmt(e.delta)}`, fix: false };
     if (e.kind === "completed") return { t: `${nm} +${fmt(-e.delta)}`, fix: false };
+    if (e.kind === "missed") return { t: `${nm} qaza mein shamil (${e.for_day ? dateLabel(e.for_day) : ""} ada nahi hui)`, fix: true };
+    if (e.kind === "undo" && rel && rel.kind === "missed") return { t: `Undo: ${nm} (${rel.for_day ? dateLabel(rel.for_day) : ""}) ada ki, qaza se nikali`, fix: true };
     if (e.kind === "undo") return { t: `Undo: ${nm} ${rel && rel.kind === "completed" ? "+" + fmt(-rel.delta) : ""} wapas baqi mein`, fix: true };
     if (rel && rel.kind === "initial") return { t: `Correction: ${nm} shuru ka hisaab ${e.delta > 0 ? "+" : ""}${fmt(e.delta)}`, fix: true };
     return { t: `Correction: ${nm} ${e.delta > 0 ? "+" : ""}${fmt(e.delta)}`, fix: true };
@@ -376,17 +457,25 @@ function start() {
     left.append(el("b", "t", t));
     let meta = timeOf(e.recorded_at) + (withUndo ? "" : " · " + dateLabel(dateKey(e.recorded_at)));
     if (e.kind === "completed") meta += ` · baqi par asar: −${fmt(-e.delta)}`;
-    if (e.kind === "undo" || e.kind === "correction") meta += ` · baqi par asar: ${e.delta > 0 ? "+" : ""}${fmt(e.delta)}`;
+    if (e.kind === "undo" || e.kind === "correction" || e.kind === "missed") meta += ` · baqi par asar: ${e.delta > 0 ? "+" : ""}${fmt(e.delta)}`;
     if (undone) meta += " · undo ho chuka";
     left.append(el("span", "muted", meta));
     row.append(left);
-    if (withUndo && e.kind === "completed" && !undone) {
+    if (withUndo && (e.kind === "completed" || e.kind === "missed") && !undone) {
       const u = el("button", "mini", "Undo"); u.type = "button";
       u.setAttribute("aria-label", "Undo " + t);
       u.addEventListener("click", () => busy(u, async () => {
         try {
           await insertEntries([{ item: e.item, kind: "undo", delta: -e.delta, related_entry_id: e.id, note: "Undo" }]);
-          renderHistory(); say("Undo ho gaya ✓ " + nameOf(e.item) + " +" + fmt(-e.delta) + " wapas baqi mein.");
+          if (e.kind === "missed" && e.for_day) {
+            await supabase.from("daily_status").upsert(
+              { user_id: state.session.user.id, day: e.for_day, prayer: e.item, status: "prayed", updated_at: new Date().toISOString() },
+              { onConflict: "user_id,day,prayer" });
+            await loadEntries();
+            renderHistory(); say("Undo ho gaya ✓ " + nameOf(e.item) + " qaza se nikal di gayi.");
+          } else {
+            renderHistory(); say("Undo ho gaya ✓ " + nameOf(e.item) + " +" + fmt(-e.delta) + " wapas baqi mein.");
+          }
         } catch (err) { say(friendly(err), "error"); }
       }));
       row.append(u);
@@ -409,9 +498,10 @@ function start() {
     else if (state.range === "all") from.setFullYear(1900);
     const list = state.entries.filter((e) => new Date(e.recorded_at) >= from);
     let done = 0;
-    for (const e of list) if (e.kind !== "initial") {
+    for (const e of list) {
+      if (e.kind === "completed") { done += -e.delta; continue; }
       const rel = e.related_entry_id ? state.entries.find((x) => x.id === e.related_entry_id) : null;
-      if (!(rel && rel.kind === "initial")) done += -e.delta;
+      if (rel && rel.kind === "completed") done += -e.delta;
     }
     const label = { day: "Aaj", week: "Pichle 7 din", month: "Pichle 30 din", all: "Ab tak" }[state.range];
     $("h-summary").textContent = `${label}: ${fmt(done)} ada (undo ke baad), ${list.length} entries.`;

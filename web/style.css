@@ -147,9 +147,9 @@ code { font-size: 13px; }
 .rev-row .num { font-weight: 700; color: var(--green); }
 
 /* Dashboard */
-.hero { background: #0E5A4A; color: #fff; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.hero { background: #0E5A4A; color: #fff; border-radius: 18px; padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; }
 .hero-label { font-size: 13px; opacity: 0.9; }
-.hero-num { font-size: 40px; font-weight: 700; line-height: 1; }
+.hero-num { font-size: 34px; font-weight: 700; line-height: 1; }
 .hero-row { display: flex; justify-content: space-between; font-size: 13px; }
 .bar { height: 8px; background: var(--tint); border-radius: 999px; overflow: hidden; }
 .bar > div { height: 100%; width: 0; background: var(--green); border-radius: 999px; }
@@ -196,3 +196,18 @@ code { font-size: 13px; }
 }
 .nav button { background: none; border: none; color: var(--muted); font-size: 11px; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; font-family: inherit; }
 .nav button.active { color: var(--green); }
+
+/* Aaj ki namazein */
+.today-card { padding: 14px 12px; }
+.today-row { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line-soft); border-radius: 12px; padding: 6px 8px; }
+.today-row .nm { flex: 1; font-weight: 600; }
+.today-row .st { font-size: 12px; color: var(--muted); }
+.pill { height: 40px; min-width: 64px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; }
+.pill.ok.on { background: #0E5A4A; color: #fff; border-color: #0E5A4A; }
+.pill.no.on { background: var(--error); color: #fff; border-color: var(--error); }
+/* + button */
+.plus { width: 44px; height: 44px; flex: none; border-radius: 12px; border: none; background: #0E5A4A; color: #fff; font-size: 24px; font-weight: 600; cursor: pointer; line-height: 1; }
+.plus:disabled { opacity: 0.4; cursor: default; }
+.item-top { display: flex; align-items: center; gap: 10px; }
+.item-top .grow { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+#view-dashboard, #view-history, #view-settings { display: flex; flex-direction: column; gap: 12px; }
