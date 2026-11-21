@@ -101,7 +101,7 @@ if (!configured) {
 
 function start() {
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const state = { session: null, entries: [], daily: {}, bal: null, addItem: "fajr", range: "day", review: null, loadedFor: null };
+  const state = { session: null, entries: [], daily: {}, pending: {}, showUndone: false, bal: null, addItem: "fajr", range: "day", review: null, loadedFor: null };
   let recovering = false;
 
   // ================= AUTH =================
@@ -330,8 +330,32 @@ function start() {
   }));
 
   // ================= DASHBOARD =================
+  // + ki taps jo abhi save nahi hui (jaldi jaldi dabane par ek hi entry banti hai)
+  const pendingTimers = {};
+  function view(id) {
+    const r = state.bal.items[id], p = state.pending[id] || 0;
+    return { ...r, remaining: r.remaining - p, done: r.done + p, today: r.today + p };
+  }
+  async function flushPending(id) {
+    clearTimeout(pendingTimers[id]); delete pendingTimers[id];
+    const n = state.pending[id] || 0;
+    if (!n) return;
+    try {
+      await insertEntries([{ item: id, kind: "completed", delta: -n }]);
+      delete state.pending[id];
+      if (!$("view-dashboard").hidden) renderDashboard();
+      say(`${nameOf(id)} +${n} Ada save ho gaya ✓ Baqi: ${fmt(state.bal.items[id].remaining)}`);
+    } catch (err) {
+      delete state.pending[id];
+      if (!$("view-dashboard").hidden) renderDashboard();
+      say(friendly(err), "error");
+    }
+  }
+  async function flushAll() { await Promise.all(Object.keys(state.pending).map(flushPending)); }
+
   function renderDashboard() {
-    const b = state.bal.items;
+    const b = {};
+    for (const it of ITEMS) b[it.id] = view(it.id);
     let init = 0, rem = 0, today = 0;
     for (const p of PRAYERS) { init += b[p.id].initial; rem += b[p.id].remaining; today += b[p.id].today; }
     const done = init - rem;
@@ -362,14 +386,15 @@ function start() {
       const plus = el("button", "plus", "+"); plus.type = "button";
       plus.setAttribute("aria-label", it.name + " ki 1 qaza ada karein");
       plus.disabled = r.remaining <= 0;
-      plus.addEventListener("click", () => busy(plus, async () => {
-        if (state.bal.items[it.id].remaining <= 0) return;
-        try {
-          await insertEntries([{ item: it.id, kind: "completed", delta: -1 }]);
-          renderDashboard();
-          say(`${it.name} +1 Ada ✓ Baqi: ${fmt(state.bal.items[it.id].remaining)}`);
-        } catch (err) { say(friendly(err), "error"); }
-      }));
+      if (state.pending[it.id]) plus.textContent = "+" + state.pending[it.id];
+      plus.addEventListener("click", () => {
+        if (view(it.id).remaining <= 0) return;
+        state.pending[it.id] = (state.pending[it.id] || 0) + 1;
+        clearTimeout(pendingTimers[it.id]);
+        pendingTimers[it.id] = setTimeout(() => flushPending(it.id), 1500);
+        renderDashboard();
+        say(`${it.name} +${state.pending[it.id]} … (rukte hi save ho jayega)`);
+      });
       const minus = el("button", "plus minus", "−"); minus.type = "button";
       minus.setAttribute("aria-label", it.name + " ki 1 ada wapas karein (ghalti theek karein)");
       minus.disabled = r.done <= 0;
@@ -387,7 +412,7 @@ function start() {
       top.append(grow, plus); card.append(top); list.append(card);
     }
     const recent = $("d-recent"); recent.replaceChildren();
-    const rec = state.entries.filter((e) => e.kind !== "initial").slice(0, 5);
+    const rec = state.entries.filter((e) => e.kind !== "initial" && !isHiddenUndo(e)).slice(0, 5);
     if (!rec.length) recent.append(el("p", "muted small-left", "Abhi koi entry nahi. Neeche \"Add\" dabayein."));
     rec.forEach((e) => recent.append(entryCard(e, true, true)));
   }
@@ -535,6 +560,18 @@ function start() {
     return Math.max(0, v);
   }
 
+  // Undo ho chuki entry aur khud undo wali entry: aam taur par nazar se chhupa do (record andar mehfooz)
+  function isHiddenUndo(e) {
+    if (e.kind === "undo") return true;
+    if (state.bal.undone.has(e.id)) return true;
+    if (e.kind === "completed" && effectiveOf(e) === 0) return true;
+    if (e.kind === "correction") {
+      const rel = state.entries.find((x) => x.id === e.related_entry_id);
+      if (rel && rel.kind === "completed" && effectiveOf(rel) === 0) return true;
+    }
+    return false;
+  }
+
   function refreshAfterUndo() {
     if (!$("view-dashboard").hidden) renderDashboard(); else renderHistory();
   }
@@ -545,13 +582,15 @@ function start() {
     renderHistory();
   }));
 
+  $("h-show-undone").addEventListener("change", (e) => { state.showUndone = e.target.checked; renderHistory(); });
+
   function renderHistory() {
     const now = startOfDay(new Date());
     const from = new Date(now);
     if (state.range === "week") from.setDate(from.getDate() - 6);
     else if (state.range === "month") from.setDate(from.getDate() - 29);
     else if (state.range === "all") from.setFullYear(1900);
-    const list = state.entries.filter((e) => new Date(e.recorded_at) >= from);
+    const list = state.entries.filter((e) => new Date(e.recorded_at) >= from && (state.showUndone || !isHiddenUndo(e)));
     let done = 0;
     for (const e of state.entries) {
       if (e.kind === "completed") { if (new Date(e.recorded_at) >= from) done += -e.delta; continue; }
@@ -597,7 +636,8 @@ function start() {
   }));
 
   // ================= NAVIGATION =================
-  function go(view) {
+  async function go(view) {
+    await flushAll();
     say("");
     if (view === "dashboard") renderDashboard();
     if (view === "add") renderAdd();
@@ -607,5 +647,7 @@ function start() {
     show(view);
   }
   document.querySelectorAll("[data-nav]").forEach((b) => b.addEventListener("click", () => go(b.dataset.nav)));
+  // App band/minimize ho to baqi taps foran save
+  document.addEventListener("visibilitychange", () => { if (document.hidden) flushAll(); });
   document.querySelectorAll("[data-go-app]").forEach((b) => b.addEventListener("click", () => go(b.dataset.goApp)));
 }
