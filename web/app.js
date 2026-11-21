@@ -66,6 +66,32 @@ function localSet(uid, v) { try { localStorage.setItem("qaza-setup-" + uid, JSON
 
 document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => { say(""); show(b.dataset.go); }));
 
+// Har password ke khane mein aankh ka button: dabane se password nazar aaye / chhup jaye
+const EYE = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.7 0 3.2-.5 4.5-1.2"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+document.querySelectorAll('input[type="password"]').forEach((inp) => {
+  const wrap = document.createElement("div");
+  wrap.className = "pw-wrap";
+  inp.parentNode.insertBefore(wrap, inp);
+  wrap.appendChild(inp);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "pw-eye";
+  btn.innerHTML = EYE;
+  btn.setAttribute("aria-label", "Password dikhayein");
+  btn.setAttribute("aria-pressed", "false");
+  btn.addEventListener("click", () => {
+    const showing = inp.type === "text";
+    inp.type = showing ? "password" : "text";
+    btn.innerHTML = showing ? EYE : EYE_OFF;
+    btn.setAttribute("aria-label", showing ? "Password dikhayein" : "Password chhupayein");
+    btn.setAttribute("aria-pressed", String(!showing));
+  });
+  wrap.appendChild(btn);
+  // form reset/submit ke baad dobara chhupa do
+  inp.form && inp.form.addEventListener("reset", () => { inp.type = "password"; btn.innerHTML = EYE; btn.setAttribute("aria-pressed", "false"); btn.setAttribute("aria-label", "Password dikhayein"); });
+});
+
 if (!configured) {
   $("config-warning").hidden = false;
   show("login");

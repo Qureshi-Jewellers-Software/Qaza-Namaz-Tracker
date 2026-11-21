@@ -215,3 +215,7 @@ code { font-size: 13px; }
 /* Netlify ka "Powered by" badge neeche ~56px leta hai: menu us se upar */
 .nav { bottom: 58px; left: 8px; right: 8px; border: 1px solid var(--line-soft); border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
 .shell { padding-bottom: 150px; }
+.pw-wrap { position: relative; display: flex; }
+.pw-wrap input { padding-right: 52px; }
+.pw-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border: none; background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 10px; }
+.pw-eye:hover, .pw-eye[aria-pressed="true"] { color: var(--green); }
