@@ -357,7 +357,8 @@ function start() {
           say(`${it.name} −1: ghalti theek ho gayi ✓ Baqi: ${fmt(state.bal.items[it.id].remaining)}`);
         } catch (err) { say(friendly(err), "error"); }
       }));
-      top.append(grow, minus, plus); card.append(top); list.append(card);
+      // − button abhi band hai (user ki hidayat), baad mein dekhenge
+      top.append(grow, plus); card.append(top); list.append(card);
     }
     const recent = $("d-recent"); recent.replaceChildren();
     const rec = state.entries.filter((e) => e.kind !== "initial").slice(0, 5);
@@ -526,10 +527,11 @@ function start() {
     else if (state.range === "all") from.setFullYear(1900);
     const list = state.entries.filter((e) => new Date(e.recorded_at) >= from);
     let done = 0;
-    for (const e of list) {
-      if (e.kind === "completed") { done += -e.delta; continue; }
+    for (const e of state.entries) {
+      if (e.kind === "completed") { if (new Date(e.recorded_at) >= from) done += -e.delta; continue; }
       const rel = e.related_entry_id ? state.entries.find((x) => x.id === e.related_entry_id) : null;
-      if (rel && rel.kind === "completed") done += -e.delta;
+      // wapsi asal entry ke din mein ginein
+      if (rel && rel.kind === "completed" && new Date(rel.recorded_at) >= from) done += -e.delta;
     }
     const label = { day: "Aaj", week: "Pichle 7 din", month: "Pichle 30 din", all: "Ab tak" }[state.range];
     $("h-summary").textContent = `${label}: ${fmt(done)} ada (undo ke baad), ${list.length} entries.`;

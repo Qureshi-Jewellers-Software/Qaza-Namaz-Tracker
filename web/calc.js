@@ -100,7 +100,11 @@ export function balances(entries, todayKey) {
     const rel = e.related_entry_id ? byId.get(e.related_entry_id) : null;
     const owed = OWED.has(e.kind) || (rel && OWED.has(rel.kind));
     if (owed) r.initial += e.delta;
-    else if (todayKey && dateKey(e.recorded_at) === todayKey) r.today += -e.delta;
+    else {
+      // Undo/ghalti-theek us din mein gine jis din asal entry hui thi (aaj mein nahi)
+      const when = rel ? rel.recorded_at : e.recorded_at;
+      if (todayKey && dateKey(when) === todayKey) r.today += -e.delta;
+    }
   }
   for (const it of ITEMS) { const r = res[it.id]; r.done = r.initial - r.remaining; }
   return { items: res, undone };
