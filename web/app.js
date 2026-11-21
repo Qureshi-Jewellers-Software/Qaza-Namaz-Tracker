@@ -375,7 +375,7 @@ function start() {
       const st = state.daily[p.id];
       const row = el("div", "today-row");
       const nm = el("div", "nm"); nm.append(document.createTextNode(p.name + " "));
-      nm.append(el("span", "st", st === "prayed" ? "✓ Ada" : st === "missed" ? "✗ Qaza mein" : "Baqi"));
+      nm.append(el("span", "st", st === "prayed" ? "✓ Ada" : st === "missed" ? "✗ Qaza Mein" : "Baqi"));
       const ok = el("button", "pill ok" + (st === "prayed" ? " on" : ""), "Ada"); ok.type = "button";
       ok.setAttribute("aria-pressed", st === "prayed"); ok.setAttribute("aria-label", p.name + " ada ki");
       const no = el("button", "pill no" + (st === "missed" ? " on" : ""), "Qaza"); no.type = "button";
@@ -426,7 +426,7 @@ function start() {
     const inp = $("add-count");
     let n = parseInt(inp.value, 10) || 0;
     if (n > r.remaining) { n = r.remaining; inp.value = n; }
-    $("add-q").textContent = state.addItem === "roza" ? "Kitne rozay rakhe?" : `Kitni ${nameOf(state.addItem)} ada ki?`;
+    $("add-q").textContent = state.addItem === "roza" ? "Kitne Rozay Rakhe?" : `Kitni ${nameOf(state.addItem)} Ada Ki?`;
     $("add-before").textContent = fmt(r.remaining);
     $("add-after").textContent = fmt(Math.max(0, r.remaining - Math.max(0, n)));
   }

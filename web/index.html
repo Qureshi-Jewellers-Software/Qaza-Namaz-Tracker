@@ -39,61 +39,61 @@
         <label>Password
           <input name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="••••••••">
         </label>
-        <button type="button" class="link right" data-go="forgot">Password bhool gaye?</button>
+        <button type="button" class="link right" data-go="forgot">Password Bhool Gaye?</button>
         <button type="submit" class="btn">Login</button>
       </form>
-      <p class="switch">Naya account? <button type="button" class="link" data-go="register">Register karein</button></p>
+      <p class="switch">Naya account? <button type="button" class="link" data-go="register">Register Karein</button></p>
     </section>
 
     <!-- ============ REGISTER ============ -->
     <section id="view-register" class="card" hidden>
-      <h2>Naya account</h2>
+      <h2>Naya Account</h2>
       <form id="form-register" novalidate>
         <label>Email
           <input name="email" type="email" autocomplete="email" required placeholder="aap@example.com">
         </label>
-        <label>Password <span class="hint">(kam az kam 8 huroof)</span>
+        <label>Password <span class="hint">(Kam Az Kam 8 Huroof)</span>
           <input name="password" type="password" autocomplete="new-password" required minlength="8">
         </label>
-        <label>Password dobara
+        <label>Password Dobara
           <input name="password2" type="password" autocomplete="new-password" required minlength="8">
         </label>
-        <button type="submit" class="btn">Account banayein</button>
+        <button type="submit" class="btn">Account Banayein</button>
       </form>
-      <p class="switch">Pehle se account hai? <button type="button" class="link" data-go="login">Login karein</button></p>
+      <p class="switch">Pehle se account hai? <button type="button" class="link" data-go="login">Login Karein</button></p>
     </section>
 
     <!-- ============ FORGOT ============ -->
     <section id="view-forgot" class="card" hidden>
-      <h2>Password bhool gaye</h2>
+      <h2>Password Bhool Gaye</h2>
       <p class="muted">Apna email likhein. Hum password badalne ka link bhejenge.</p>
       <form id="form-forgot" novalidate>
         <label>Email
           <input name="email" type="email" autocomplete="email" required placeholder="aap@example.com">
         </label>
-        <button type="submit" class="btn">Link bhejein</button>
+        <button type="submit" class="btn">Link Bhejein</button>
       </form>
-      <p class="switch"><button type="button" class="link" data-go="login">Wapas login par</button></p>
+      <p class="switch"><button type="button" class="link" data-go="login">Wapas Login Par</button></p>
     </section>
 
     <!-- ============ RESET ============ -->
     <section id="view-reset" class="card" hidden>
-      <h2>Naya password</h2>
+      <h2>Naya Password</h2>
       <form id="form-reset" novalidate>
-        <label>Naya password <span class="hint">(kam az kam 8 huroof)</span>
+        <label>Naya Password <span class="hint">(Kam Az Kam 8 Huroof)</span>
           <input name="password" type="password" autocomplete="new-password" required minlength="8">
         </label>
-        <label>Naya password dobara
+        <label>Naya Password Dobara
           <input name="password2" type="password" autocomplete="new-password" required minlength="8">
         </label>
-        <button type="submit" class="btn">Password save karein</button>
+        <button type="submit" class="btn">Password Save Karein</button>
       </form>
     </section>
 
     <!-- ============ SETUP ============ -->
     <section id="view-setup" class="card" hidden>
       <span class="step">Qadam 1 / 2</span>
-      <h2>Apni maloomat</h2>
+      <h2>Apni Maloomat</h2>
       <p class="muted small-left">In se app aapki qaza ka andaza lagayegi. DOB, gender aur haiz ki maloomat sirf aapke is device par rehti hai.</p>
       <form id="form-setup" novalidate>
         <label>Date of Birth
@@ -104,29 +104,29 @@
           <label class="seg-opt"><input type="radio" name="gender" value="male" checked><span>Mard (Male)</span></label>
           <label class="seg-opt"><input type="radio" name="gender" value="female"><span>Aurat (Female)</span></label>
         </fieldset>
-        <label>Kis umar se ginti shuru ho? <span class="hint">(default 10 saal)</span>
+        <label>Kis Umar Se Ginti Shuru Ho? <span class="hint">(Default 10 Saal)</span>
           <input name="startAge" type="number" inputmode="numeric" min="1" max="30" value="10" required>
         </label>
         <div id="haiz-box" class="subcard" hidden>
-          <label>Haiz: mahine mein andazan kitne din?
+          <label>Haiz: Mahine Mein Andazan Kitne Din?
             <input name="haizDays" type="number" inputmode="numeric" min="0" max="15" value="7">
           </label>
           <p class="muted small-left">In dinon ki namazein qaza se minus hongi. Ramzan ke in dinon ke rozay qaza rozon mein shamil rahenge.</p>
         </div>
-        <button type="submit" class="btn">Hisaab lagayein</button>
+        <button type="submit" class="btn">Hisaab Lagayein</button>
       </form>
-      <p class="switch"><button type="button" class="link" id="btn-manual">DOB ke baghair, khud number likhna hai</button></p>
+      <p class="switch"><button type="button" class="link" id="btn-manual">DOB Ke Baghair, Khud Number Likhna Hai</button></p>
     </section>
 
     <!-- ============ REVIEW ============ -->
     <section id="view-review" class="card" hidden>
       <span class="step">Qadam 2 / 2</span>
-      <h2>Apna hisaab check karein</h2>
+      <h2>Apna Hisaab Check Karein</h2>
       <div id="review-info" class="notice"></div>
       <div class="rev-head"><span>Item</span><span>Total</span><span>Ada −</span><span>Qaza</span></div>
       <div id="review-rows" class="rev-rows"></div>
       <p class="muted small-left">"Ada" mein woh namazein/rozay likhein jo aap pehle hi parh/rakh chuke hain. Har number baad mein Settings se badla ja sakta hai. Yeh sirf andaza hai, fatwa nahi.</p>
-      <button type="button" class="btn" id="btn-save-initial">Theek hai, save karein</button>
+      <button type="button" class="btn" id="btn-save-initial">Theek Hai, Save Karein</button>
       <button type="button" class="btn secondary" data-go-app="setup">Wapas</button>
     </section>
 
@@ -136,41 +136,41 @@
         <span class="hero-label">Baqi Qaza Namazein</span>
         <span class="hero-num" id="d-remaining">0</span>
         <div class="bar light"><div id="d-bar"></div></div>
-        <div class="hero-row"><span>Ada ho chuki: <b id="d-done">0</b></span><span><b id="d-pct">0%</b> Mukammal</span></div>
+        <div class="hero-row"><span>Ada Ho Chuki: <b id="d-done">0</b></span><span><b id="d-pct">0%</b> Mukammal</span></div>
       </div>
       <div class="card today-card">
-        <h3>Aaj ki namazein <span class="muted" id="t-date"></span></h3>
+        <h3>Aaj Ki Namazein <span class="muted" id="t-date"></span></h3>
         <p class="muted small-left">Jo namaz aaj waqt par parhi, us par <b>Ada</b> dabayein. Jo reh gayi, us par <b>Qaza</b>. Jin ka haal din khatam hone tak darj na ho, woh khud qaza mein shamil ho jayengi.</p>
         <div id="t-list" class="list"></div>
       </div>
       <div class="grid2">
-        <div class="stat"><span class="muted">Aaj ada ki</span><b id="d-today">0</b></div>
-        <div class="stat"><span class="muted">Qaza rozay baqi</span><b id="d-roza">0</b></div>
+        <div class="stat"><span class="muted">Aaj Ada Ki</span><b id="d-today">0</b></div>
+        <div class="stat"><span class="muted">Qaza Rozay Baqi</span><b id="d-roza">0</b></div>
       </div>
-      <h3>Har namaz ki qaza <span class="muted small-left">(+ dabayein = 1 qaza ada)</span></h3>
+      <h3>Har Namaz Ki Qaza <span class="muted small-left">(+ Dabayein = 1 Qaza Ada)</span></h3>
       <div id="d-list" class="list"></div>
-      <h3>Haal hi mein</h3>
+      <h3>Haal Hi Mein</h3>
       <div id="d-recent" class="list"></div>
     </section>
 
     <!-- ============ ADD ============ -->
     <section id="view-add" class="card" hidden>
-      <h2>Qaza ada ki? Darj karein</h2>
-      <p class="label">Kya ada kiya?</p>
+      <h2>Qaza Ada Ki? Darj Karein</h2>
+      <p class="label">Kya Ada Kiya?</p>
       <div id="add-items" class="chips"></div>
       <div class="counter">
-        <p class="muted" id="add-q">Kitni ada ki?</p>
+        <p class="muted" id="add-q">Kitni Ada Ki?</p>
         <div class="counter-row">
           <button type="button" class="round" id="add-dec" aria-label="Kam karein">−</button>
           <input id="add-count" type="number" inputmode="numeric" min="1" value="1" aria-label="Tadaad">
           <button type="button" class="round primary" id="add-inc" aria-label="Zyada karein">+</button>
         </div>
         <div class="grid2">
-          <div class="stat soft"><span class="muted">Abhi baqi</span><b id="add-before">0</b></div>
-          <div class="stat tint"><span class="muted">Save ke baad</span><b id="add-after">0</b></div>
+          <div class="stat soft"><span class="muted">Abhi Baqi</span><b id="add-before">0</b></div>
+          <div class="stat tint"><span class="muted">Save Ke Baad</span><b id="add-after">0</b></div>
         </div>
       </div>
-      <button type="button" class="btn" id="btn-add">Save karein</button>
+      <button type="button" class="btn" id="btn-add">Save Karein</button>
       <p class="muted small">Ghalti ho jaye to History se Undo kar sakte hain.</p>
     </section>
 
@@ -197,11 +197,11 @@
       <div class="card">
         <h3>Hisaab</h3>
         <p class="muted small-left">Shuru ke numbers ghalat lagein to dobara hisaab lagayein. Purana record mitega nahi; farq "correction" ke taur par history mein likha jayega.</p>
-        <button type="button" class="btn secondary" data-go-app="setup">Shuru ka hisaab badlein</button>
+        <button type="button" class="btn secondary" data-go-app="setup">Shuru Ka Hisaab Badlein</button>
       </div>
       <div class="card">
         <button type="button" class="btn secondary" id="btn-logout">Logout</button>
-        <button type="button" class="btn danger" id="btn-delete">Account delete karein</button>
+        <button type="button" class="btn danger" id="btn-delete">Account Delete Karein</button>
         <p class="muted small-left" id="delete-note" hidden>Pakka? Aapka account aur saara record hamesha ke liye mit jayega. Tasdeeq ke liye button dobara dabayein.</p>
       </div>
     </section>
