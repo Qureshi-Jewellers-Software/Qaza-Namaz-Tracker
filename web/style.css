@@ -212,3 +212,6 @@ code { font-size: 13px; }
 .item-top .grow { flex: 1; display: flex; flex-direction: column; gap: 6px; }
 #view-dashboard, #view-history, #view-settings { display: flex; flex-direction: column; gap: 12px; }
 .plus.minus { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+/* Netlify ka "Powered by" badge neeche ~56px leta hai: menu us se upar */
+.nav { bottom: 58px; left: 8px; right: 8px; border: 1px solid var(--line-soft); border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+.shell { padding-bottom: 150px; }
