@@ -344,12 +344,25 @@ function start() {
           say(`${it.name} +1 Ada ✓ Baqi: ${fmt(state.bal.items[it.id].remaining)}`);
         } catch (err) { say(friendly(err), "error"); }
       }));
-      top.append(grow, plus); card.append(top); list.append(card);
+      const minus = el("button", "plus minus", "−"); minus.type = "button";
+      minus.setAttribute("aria-label", it.name + " ki 1 ada wapas karein (ghalti theek karein)");
+      minus.disabled = r.done <= 0;
+      minus.addEventListener("click", () => busy(minus, async () => {
+        if (state.bal.items[it.id].done <= 0) return;
+        const last = state.entries.find((x) => x.kind === "completed" && x.item === it.id && effectiveOf(x) > 0);
+        if (!last) return say(`${it.name} mein wapas karne ko koi entry nahi mili. History se Undo karein.`, "error");
+        try {
+          await insertEntries([{ item: it.id, kind: "correction", delta: 1, related_entry_id: last.id, note: "Ghalti: 1 ada wapas" }]);
+          renderDashboard();
+          say(`${it.name} −1: ghalti theek ho gayi ✓ Baqi: ${fmt(state.bal.items[it.id].remaining)}`);
+        } catch (err) { say(friendly(err), "error"); }
+      }));
+      top.append(grow, minus, plus); card.append(top); list.append(card);
     }
     const recent = $("d-recent"); recent.replaceChildren();
     const rec = state.entries.filter((e) => e.kind !== "initial").slice(0, 5);
     if (!rec.length) recent.append(el("p", "muted small-left", "Abhi koi entry nahi. Neeche \"Add\" dabayein."));
-    rec.forEach((e) => recent.append(entryCard(e, false)));
+    rec.forEach((e) => recent.append(entryCard(e, true, true)));
   }
 
   // ================= AAJ KI NAMAZEIN =================
@@ -445,17 +458,18 @@ function start() {
     if (e.kind === "undo" && rel && rel.kind === "missed") return { t: `Undo: ${nm} (${rel.for_day ? dateLabel(rel.for_day) : ""}) ada ki, qaza se nikali`, fix: true };
     if (e.kind === "undo") return { t: `Undo: ${nm} ${rel && rel.kind === "completed" ? "+" + fmt(-rel.delta) : ""} wapas baqi mein`, fix: true };
     if (rel && rel.kind === "initial") return { t: `Correction: ${nm} shuru ka hisaab ${e.delta > 0 ? "+" : ""}${fmt(e.delta)}`, fix: true };
+    if (rel && rel.kind === "completed" && e.delta > 0) return { t: `Ghalti theek: ${nm} ${fmt(e.delta)} ada wapas`, fix: true };
     return { t: `Correction: ${nm} ${e.delta > 0 ? "+" : ""}${fmt(e.delta)}`, fix: true };
   }
 
-  function entryCard(e, withUndo) {
+  function entryCard(e, withUndo, showDate) {
     const { t, fix } = entryText(e);
-    const undone = state.bal.undone.has(e.id);
+    const undone = state.bal.undone.has(e.id) || (e.kind === "completed" && effectiveOf(e) === 0);
     const card = el("div", "item" + (fix ? " fix" : "") + (undone ? " undone" : ""));
     const row = el("div", "item-row");
     const left = el("div", "grow");
     left.append(el("b", "t", t));
-    let meta = timeOf(e.recorded_at) + (withUndo ? "" : " · " + dateLabel(dateKey(e.recorded_at)));
+    let meta = timeOf(e.recorded_at) + (withUndo && !showDate ? "" : " · " + dateLabel(dateKey(e.recorded_at)));
     if (e.kind === "completed") meta += ` · baqi par asar: −${fmt(-e.delta)}`;
     if (e.kind === "undo" || e.kind === "correction" || e.kind === "missed") meta += ` · baqi par asar: ${e.delta > 0 ? "+" : ""}${fmt(e.delta)}`;
     if (undone) meta += " · undo ho chuka";
@@ -466,15 +480,17 @@ function start() {
       u.setAttribute("aria-label", "Undo " + t);
       u.addEventListener("click", () => busy(u, async () => {
         try {
-          await insertEntries([{ item: e.item, kind: "undo", delta: -e.delta, related_entry_id: e.id, note: "Undo" }]);
+          const amt = e.kind === "completed" ? effectiveOf(e) : -e.delta;
+          if (e.kind === "completed" && amt <= 0) return;
+          await insertEntries([{ item: e.item, kind: "undo", delta: e.kind === "completed" ? amt : -e.delta, related_entry_id: e.id, note: "Undo" }]);
           if (e.kind === "missed" && e.for_day) {
             await supabase.from("daily_status").upsert(
               { user_id: state.session.user.id, day: e.for_day, prayer: e.item, status: "prayed", updated_at: new Date().toISOString() },
               { onConflict: "user_id,day,prayer" });
             await loadEntries();
-            renderHistory(); say("Undo ho gaya ✓ " + nameOf(e.item) + " qaza se nikal di gayi.");
+            refreshAfterUndo(); say("Undo ho gaya ✓ " + nameOf(e.item) + " qaza se nikal di gayi.");
           } else {
-            renderHistory(); say("Undo ho gaya ✓ " + nameOf(e.item) + " +" + fmt(-e.delta) + " wapas baqi mein.");
+            refreshAfterUndo(); say("Undo ho gaya ✓ " + nameOf(e.item) + " " + fmt(amt) + " wapas baqi mein.");
           }
         } catch (err) { say(friendly(err), "error"); }
       }));
@@ -482,6 +498,18 @@ function start() {
     }
     card.append(row);
     return card;
+  }
+
+  // Ek completed entry mein se kitna abhi baqi hai (undo/ghalti-theek ke baad)
+  function effectiveOf(e) {
+    if (state.bal.undone.has(e.id)) return 0;
+    let v = -e.delta;
+    for (const x of state.entries) if (x.kind === "correction" && x.related_entry_id === e.id) v -= x.delta;
+    return Math.max(0, v);
+  }
+
+  function refreshAfterUndo() {
+    if (!$("view-dashboard").hidden) renderDashboard(); else renderHistory();
   }
 
   document.querySelectorAll("[data-range]").forEach((b) => b.addEventListener("click", () => {

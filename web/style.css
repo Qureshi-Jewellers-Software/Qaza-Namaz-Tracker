@@ -211,3 +211,4 @@ code { font-size: 13px; }
 .item-top { display: flex; align-items: center; gap: 10px; }
 .item-top .grow { flex: 1; display: flex; flex-direction: column; gap: 6px; }
 #view-dashboard, #view-history, #view-settings { display: flex; flex-direction: column; gap: 12px; }
+.plus.minus { background: transparent; color: var(--ink); border: 1px solid var(--line); }
